@@ -1,6 +1,5 @@
 import edu.princeton.cs.algs4.Picture;
 
-import java.awt.Color;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
@@ -22,60 +21,84 @@ public class SeamCarver {
     if (picture == null) {
       throw new IllegalArgumentException();
     }
-    setPicture(picture);
+    setPicture(new Picture(picture));
   }
 
   // current picture
   public Picture picture() {
+    if (isTransposed) {
+      transpose();
+    }
     return new Picture(picture);
   }
 
   // width of current picture
   public int width() {
+    if (isTransposed) {
+      transpose();
+    }
     return picture.width();
   }
 
   // height of current picture
   public int height() {
+    if (isTransposed) {
+      transpose();
+    }
     return picture.height();
   }
 
   private void setPicture(final Picture picture) {
-    this.picture = new Picture(picture);
-    final double[][] newEnergy = new double[picture.height()][picture.width()];
-    for (int h = 0; h < picture.height(); ++h) {
-      for (int w = 0; w < picture.width(); ++w) {
-        energy[h][w] = energy(picture, w, h);
-      }
-    }
-    this.energy = newEnergy;
+    this.picture = picture;
+    this.energy = energy(picture);
   }
 
   // energy of pixel at column x and row y
   public double energy(int x, int y) {
+    final int width = isTransposed ? picture.height() : picture.width(),
+        height = isTransposed ? picture.width() : picture.height();
+    if (x < 0 || y < 0 || x >= width || y >= height) {
+      throw new IllegalArgumentException();
+    }
     if (isTransposed) {
       transpose();
     }
     return energy[y][x];
   }
 
-  private static double energy(final Picture picture, int w, int h) {
+  private static double[][] energy(final Picture picture) {
     final int width = picture.width(), height = picture.height();
-    if (w < 0 || h < 0 || w >= width || h >= height) {
-      throw new IllegalArgumentException();
+    final double[][] result = new double[height][width];
+    for (int h = 0; h < height; ++h) {
+      for (int w = 0; w < width; ++w) {
+        if (w == 0 || h == 0 || w == width - 1 || h == height - 1) {
+          result[h][w] = BOUNDARY_ENERGY;
+        } else {
+          final int[] left = getRgb(picture.getRGB(w - 1, h)),
+              right = getRgb(picture.getRGB(w + 1, h)),
+              top = getRgb(picture.getRGB(w, h - 1)),
+              bottom = getRgb(picture.getRGB(w, h + 1));
+
+          final int sum = square(left[0] - right[0])
+              + square(left[1] - right[1])
+              + square(left[2] - right[2])
+              + square(top[0] - bottom[0])
+              + square(top[1] - bottom[1])
+              + square(top[2] - bottom[2]);
+          result[h][w] = Math.sqrt(sum);
+        }
+      }
     }
-    if (w == 0 || h == 0 || w == width - 1 || h == height - 1) {
-      return BOUNDARY_ENERGY;
-    }
-    final Color left = picture.get(w - 1, h), right = picture.get(w + 1, h),
-        top = picture.get(w, h - 1), bottom = picture.get(w, h + 1);
-    final int sum = square(left.getRed() - right.getRed())
-        + square(left.getBlue() - right.getBlue())
-        + square(left.getGreen() - right.getGreen())
-        + square(top.getRed() - bottom.getRed())
-        + square(top.getBlue() - bottom.getBlue())
-        + square(top.getGreen() - bottom.getGreen());
-    return Math.sqrt(sum);
+    return result;
+  }
+
+  // no need to care about the rgb order
+  private static int[] getRgb(final int rgb) {
+    final int[] result = new int[3];
+    result[0] = rgb & 0xff;
+    result[1] = (rgb >> 8) & 0xff;
+    result[2] = (rgb >> 16) & 0xff;
+    return result;
   }
 
   private static int square(final int num) {
@@ -131,9 +154,9 @@ public class SeamCarver {
         final Point nextP = new Point(nextW, nextH);
         final double cur = energy[nextH][nextW], nextEnergy = cur + fromEnergy;
         if (nextEnergy < minEnergy[nextH][nextW]) {
+          minEnergy[nextH][nextW] = nextEnergy;
           pq.add(nextP);
           edgeFrom[nextH][nextW] = toRemove;
-          minEnergy[nextH][nextW] = nextEnergy;
         }
       } // end of for
     }
@@ -193,6 +216,7 @@ public class SeamCarver {
   private void transpose() {
     this.picture = transpose(this.picture);
     this.energy = transpose(this.energy);
+    isTransposed = !isTransposed;
   }
 
   private static Picture transpose(final Picture src) {
@@ -216,8 +240,6 @@ public class SeamCarver {
     }
     return target;
   }
-
-
 
   private static final class Point {
     private final int w, h;

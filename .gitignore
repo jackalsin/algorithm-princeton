@@ -1,4 +1,10 @@
 .idea
+
+.settings
+
+*/settings
+
+.project
 # Compiled class file
 *.class
 
