@@ -1,17 +1,28 @@
 language: java
 env:
   - MAVEN_TEMP=MAVEN_TEMP
-cache:
-  directories:
-    - "$HOME/.m2/repository"
-dist: xenial
-sudo: required
-before_install:
-  - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
+sudo: false
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
+
+## do everything in HermiT directory
+## this installs dependencies. Ant needs no installation because they are already there.
 install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V;
+
+## do the tests
+# script: ant test-hard && cd HermiT && mvn test
 script: mvn test;
+## a single JVM should be enough.
+## Adding openjdk7 is probably a sensible thing, but means I have to
+## edit the ant build.xml file which is unfortunate.
 jdk:
   - oraclejdk8
+
+after_success:
+  - mvn clean cobertura:cobertura coveralls:report
+
 notification:
   email:
     on_success: never
