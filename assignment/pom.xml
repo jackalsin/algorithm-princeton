@@ -13,6 +13,7 @@
         <module>assignment1WordNet</module>
         <module>assignment2SeamCarbing</module>
         <module>assignment3BaseballElimination</module>
+        <module>assignment4Boggle</module>
     </modules>
     <artifactId>assignment</artifactId>
 </project>
