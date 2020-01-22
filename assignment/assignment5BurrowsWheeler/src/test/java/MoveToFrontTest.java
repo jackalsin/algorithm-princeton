@@ -56,6 +56,26 @@ class MoveToFrontTest {
     }
   }
 
+  /* From abra.txt */
+  private static String DECODED_ZEBRA = "zebra";
+  /* From abra.txt */
+  private static byte[] ENCODED_ZEBRA = {0x7a, 0x66, 0x64, 0x73, 0x65};
+
+  @Test
+  void decodeZebraTest() {
+    System.setIn(new ByteArrayInputStream(ENCODED_ZEBRA));
+
+    MoveToFront.decode();
+    String decoded = resultOutStream.toString();
+
+    System.err.println("printing actual = " + decoded);
+    System.err.println("printing decoded = " + DECODED_ZEBRA);
+
+    for (int i = 0; i < DECODED_ZEBRA.length(); i++) {
+      assertEquals(DECODED_ZEBRA.charAt(i), decoded.charAt(i));
+    }
+  }
+
   @AfterEach
   void toFinish() {
     System.setIn(null);

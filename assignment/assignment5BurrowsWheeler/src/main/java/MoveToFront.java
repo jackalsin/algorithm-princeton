@@ -75,9 +75,9 @@ public final class MoveToFront {
       throw new IllegalArgumentException(ERROR_MESSAGE);
     }
     if (PLUS.equals(args[0])) {
-      encode();
-    } else if (MINUS.equals(args[0])) {
       decode();
+    } else if (MINUS.equals(args[0])) {
+      encode();
     }
   }
 
